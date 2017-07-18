@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.MediaPlayer;
+import android.os.PowerManager;
 
 import java.util.ArrayList;
 
@@ -22,6 +23,8 @@ public class ObstacleManager {
 
     private MediaPlayer pointSound;
     private SharedPreferences prefs;
+
+    private Context context;
 
     private boolean newHigh;
 
@@ -42,6 +45,7 @@ public class ObstacleManager {
         colors.add(Color.YELLOW);
         colors.add(Color.GREEN);
 
+        this.context = context;
         newHigh = false;
         this.prefs = prefs;
         this.playerGap = playerGap;
@@ -73,6 +77,14 @@ public class ObstacleManager {
     }
 
     public void update() {
+        PowerManager mPowerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+        if (!mPowerManager.isScreenOn()) {
+            while (true) {
+                if (mPowerManager.isScreenOn()) {
+                    break;
+                }
+            }
+        }
         if (startTime < Constants.INIT_TIME) {
             startTime = Constants.INIT_TIME;
         }
@@ -115,5 +127,9 @@ public class ObstacleManager {
             paint.setColor(Color.WHITE);
             canvas.drawText("Highscore!", 30,50+ paint.descent() - paint.ascent(), paint);
         }
+    }
+
+    public int getScore() {
+        return score;
     }
 }

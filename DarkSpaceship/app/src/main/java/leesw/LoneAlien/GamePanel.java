@@ -2,6 +2,8 @@ package leesw.LoneAlien;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.media.MediaPlayer;
+import android.os.PowerManager;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -72,5 +74,13 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     public void update() {
         manager.update();
+    }
+
+    public void onPause() {
+        thread.interrupt();
+    }
+
+    public void onResume() {
+        thread.start();
     }
 }

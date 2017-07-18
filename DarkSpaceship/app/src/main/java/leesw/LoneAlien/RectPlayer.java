@@ -67,9 +67,9 @@ public class RectPlayer implements GameObject {
                 point.y + rectangle.height()/2); //Left, Top, Right, Bottom
 
         int state = 0;
-        if (rectangle.left - oldLeft > 5) {
+        if (rectangle.left - oldLeft > 3) {
             state = 1;
-        } else if (rectangle.left - oldLeft < -5) {
+        } else if (rectangle.left - oldLeft < -3) {
             state = 2;
         }
 

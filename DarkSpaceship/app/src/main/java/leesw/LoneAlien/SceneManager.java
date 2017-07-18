@@ -2,6 +2,9 @@ package leesw.LoneAlien;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.media.MediaPlayer;
+import android.provider.MediaStore;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;

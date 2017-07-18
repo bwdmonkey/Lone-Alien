@@ -28,7 +28,6 @@ public class Star implements GameObject {
         cy += y;
     }
     public int getY() {
-        System.out.println(cy);
         return (int)cy;
     }
     @Override

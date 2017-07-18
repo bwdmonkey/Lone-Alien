@@ -12,11 +12,11 @@ public class MainThread extends Thread {
     private double averageFPS;
     private SurfaceHolder surfaceHolder;
     private GamePanel gamePanel;
-    private boolean running;
+    public static boolean RUNNING;
     public static Canvas canvas;
 
     public void setRunning(boolean running) {
-        this.running = running;
+        this.RUNNING = running;
     }
 
     public MainThread(SurfaceHolder surfaceHolder, GamePanel gamePanel) {
@@ -33,7 +33,7 @@ public class MainThread extends Thread {
         int frameCount = 0;
         long totalTime = 0;
 
-        while(running) {
+        while(RUNNING) {
             startTime = System.nanoTime();
             canvas = null;
             try {
@@ -67,8 +67,8 @@ public class MainThread extends Thread {
                 averageFPS = 1000/((totalTime/frameCount)/1000000);
                 frameCount = 0;
                 totalTime = 0;
-//                System.out.println(averageFPS);
             }
         }
     }
+
 }

@@ -39,7 +39,7 @@ public class Animation {
             return;
         }
 
-        if (System.currentTimeMillis() - lastFrame > frameTime*1000) {
+        if (System.currentTimeMillis() - lastFrame > frameTime*500) {
             frameIndex++;
             frameIndex = frameIndex >= frames.length ? 0 : frameIndex;
             lastFrame = System.currentTimeMillis();

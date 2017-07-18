@@ -1,21 +1,28 @@
 package leesw.LoneAlien;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
+import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.view.MotionEvent;
+
+import java.io.File;
+import java.util.Locale;
 
 /**
  * Created by leesw on 11/07/2017.
  */
 
-public class GameplayScene implements Scene{
-
+public class GameplayScene implements Scene {
     private Rect r = new Rect();
 
     private RectPlayer player;
@@ -34,8 +41,6 @@ public class GameplayScene implements Scene{
     private boolean gameOver = false;
     private long gameOverTime;
 
-    private MediaPlayer bgSong;
-
     private SharedPreferences prefs;
 
     public GameplayScene(Context aContext) {
@@ -45,14 +50,10 @@ public class GameplayScene implements Scene{
         player.update(playerPoint);
 
         context = aContext;
-        prefs = context.getSharedPreferences("myPrefsKey", context.MODE_PRIVATE);
+        prefs = context.getSharedPreferences("highscore", context.MODE_PRIVATE);
         obstacleManager = new ObstacleManager(200, 350, 75, context, prefs);
 
         starManager = new StarManager();
-
-        bgSong = MediaPlayer.create(context, R.raw.closemymouth);
-        bgSong.setLooping(true);
-        bgSong.start();
         frameTime = System.currentTimeMillis();
     }
     @Override
@@ -61,10 +62,7 @@ public class GameplayScene implements Scene{
             if (frameTime < Constants.INIT_TIME) {
                 frameTime = Constants.INIT_TIME;
             }
-
-            int elapsedTime = (int)(System.currentTimeMillis() - frameTime);
             frameTime = System.currentTimeMillis();
-
             if (playerPoint.x < 0) {
                 playerPoint.x = 0;
             } else if (playerPoint.x > Constants.SCREEN_WIDTH) {
@@ -82,9 +80,13 @@ public class GameplayScene implements Scene{
             if (obstacleManager.playerCollide(player)) {
                 gameOver = true;
                 gameOverTime = System.currentTimeMillis();
+                stopSong();
                 MediaPlayer deathSound = MediaPlayer.create(context, R.raw.explosion);
                 deathSound.start();
-                bgSong.pause();
+                if (!deathSound.isPlaying()) {
+                    deathSound.release();
+                }
+
             }
         }
     }
@@ -97,12 +99,22 @@ public class GameplayScene implements Scene{
         obstacleManager.draw(canvas);
 
         if (gameOver) {
+            //Backboard
             Paint paint = new Paint();
-            paint.setTextSize(100);
-            paint.setColor(Color.LTGRAY);
+            paint.setColor(Color.WHITE);
+            drawRectangle(canvas, paint, 1f);
+            paint.setColor(Color.CYAN);
+            drawRectangle(canvas, paint, 0.9f);
+            //Texts
+            AssetManager am = context.getApplicationContext().getAssets();
+            Typeface face = Typeface.createFromAsset(am,"fonts/font.ttf");
+            paint.setTextSize(175);
+            paint.setColor(Color.rgb(255,20,147));
+            paint.setTypeface(face);
             int highScore = prefs.getInt("key", 0);
+            drawCenterScore(canvas, paint, "Score: " + obstacleManager.getScore());
             drawCenterText(canvas, paint, "Game Over");
-            drawCenterScore(canvas, paint, "High: "+highScore);
+            drawCenterHS(canvas, paint, "Highscore: "+highScore);
         }
     }
 
@@ -122,9 +134,7 @@ public class GameplayScene implements Scene{
                 if (gameOver && System.currentTimeMillis() - gameOverTime >= 500) {
                     reset();
                     gameOver = false;
-                    bgSong = MediaPlayer.create(context, R.raw.closemymouth);
-                    bgSong.setLooping(true);
-                    bgSong.start();
+                    playBG();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -149,6 +159,16 @@ public class GameplayScene implements Scene{
         movingPlayer = false;
     }
 
+    private void drawCenterScore(Canvas canvas, Paint paint, String text) {
+        paint.setTextAlign(Paint.Align.LEFT);
+        canvas.getClipBounds(r);
+        int cHeight = r.height();
+        int cWidth = r.width();
+        paint.getTextBounds(text, 0, text.length(), r);
+        float x = cWidth / 2f - r.width() / 2f - r.left;
+        float y = cHeight / 2f + r.height() / 2f - r.bottom - (float)(paint.getTextSize() * 1.1);
+        canvas.drawText(text, x, y, paint);
+    }
     private void drawCenterText(Canvas canvas, Paint paint, String text) {
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.getClipBounds(r);
@@ -159,14 +179,34 @@ public class GameplayScene implements Scene{
         float y = cHeight / 2f + r.height() / 2f - r.bottom;
         canvas.drawText(text, x, y, paint);
     }
-    private void drawCenterScore(Canvas canvas, Paint paint, String text) {
+    private void drawCenterHS(Canvas canvas, Paint paint, String text) {
         paint.setTextAlign(Paint.Align.LEFT);
         canvas.getClipBounds(r);
         int cHeight = r.height();
         int cWidth = r.width();
         paint.getTextBounds(text, 0, text.length(), r);
         float x = cWidth / 2f - r.width() / 2f - r.left;
-        float y = cHeight / 2f + r.height() / 2f - r.bottom + (float)(paint.getTextSize() * 1.2);
+        float y = cHeight / 2f + r.height() / 2f - r.bottom + (float)(paint.getTextSize() * 1.1);
         canvas.drawText(text, x, y, paint);
+    }
+    private void drawRectangle(Canvas canvas, Paint paint, float scale) {
+        int cHeight = Constants.SCREEN_HEIGHT;
+        int cWidth = Constants.SCREEN_WIDTH;
+        Point center = new Point(cWidth/2, cHeight/2);
+        int rectW = (int)(cWidth/4*3*scale);
+        int rectH = (int)(cHeight/3*scale);
+        int left = center.x - (rectW / 2);
+        int top = center.y - (rectH / 2);
+        int right = center.x + (rectW / 2);
+        int bottom = center.y + (rectH / 2);
+        Rect rect = new Rect(left, top, right, bottom);
+        canvas.drawRect(rect,paint);
+    }
+
+    private void playBG() {
+        AudioPlay.playAudio(context, R.raw.closemymouth);
+    }
+    private void stopSong() {
+        AudioPlay.stopAudio();
     }
 }
