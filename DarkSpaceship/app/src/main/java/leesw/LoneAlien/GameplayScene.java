@@ -47,11 +47,12 @@ public class GameplayScene implements Scene {
         player = new RectPlayer(new Rect(100,100,200,200), Color.rgb(255,0,0));
         playerPoint = new Point(Constants.SCREEN_WIDTH/2,Constants.SCREEN_HEIGHT/4*3);
         clickPoint = new Point(Constants.SCREEN_WIDTH/2,Constants.SCREEN_HEIGHT/4*3);
+        int obstacleGap = Constants.SCREEN_WIDTH/4;
         player.update(playerPoint);
 
         context = aContext;
         prefs = context.getSharedPreferences("highscore", context.MODE_PRIVATE);
-        obstacleManager = new ObstacleManager(200, 350, 75, context, prefs);
+        obstacleManager = new ObstacleManager(200, obstacleGap, 75, context, prefs);
 
         starManager = new StarManager();
         frameTime = System.currentTimeMillis();
@@ -108,7 +109,7 @@ public class GameplayScene implements Scene {
             //Texts
             AssetManager am = context.getApplicationContext().getAssets();
             Typeface face = Typeface.createFromAsset(am,"fonts/font.ttf");
-            paint.setTextSize(175);
+            paint.setTextSize(Constants.SCREEN_HEIGHT/10);
             paint.setColor(Color.rgb(255,20,147));
             paint.setTypeface(face);
             int highScore = prefs.getInt("key", 0);
@@ -154,8 +155,8 @@ public class GameplayScene implements Scene {
     public void reset() {
         playerPoint = new Point(Constants.SCREEN_WIDTH/2,Constants.SCREEN_HEIGHT/4*3);
         player.update(playerPoint);
-
-        obstacleManager = new ObstacleManager(200, 350, 75, context, prefs);
+        int obstacleGap = Constants.SCREEN_WIDTH/4;
+        obstacleManager = new ObstacleManager(200, obstacleGap, 75, context, prefs);
         movingPlayer = false;
     }
 
